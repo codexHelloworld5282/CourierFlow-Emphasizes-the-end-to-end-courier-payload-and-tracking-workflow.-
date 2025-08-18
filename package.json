@@ -9,10 +9,12 @@
   },
   "private": true,
   "dependencies": {
+    "amqplib": "^0.10.8",
     "axios": "^1.11.0",
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "joi": "^18.0.0",
     "mongoose": "^8.17.1"
   },
   "keywords": [],

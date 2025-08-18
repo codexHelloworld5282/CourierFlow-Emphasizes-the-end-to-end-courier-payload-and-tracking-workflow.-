@@ -1,35 +1,33 @@
 const express = require('express');
 const app = express();
-const bookingRoutes = require('./routes/booking.routes');
 require("dotenv").config();
 require('./db'); // MongoDB connection
 
-// RabbitMQ imports
-const { connectRabbitMQ } = require('./service/rabbitMq/connection');
-const { startConsumer,startCancelConsumer,startTrackConsumer,startStatusConsumer } = require('./service/rabbitMq/consumer');
+// Routes
+const bookingRoutes = require('./routes/booking.routes');
 
+// RabbitMQ single class
+const rabbitService = require('./service/rabbitMq/rabbitMQ.service');
 
 app.use(express.json());
 app.use('/api/bookings', bookingRoutes);
 
+
 const PORT = process.env.PORT || 3000;
 
 (async () => {
+
     try {
-        // 1️⃣ Connect to RabbitMQ
-        await connectRabbitMQ();
+        // 1️⃣ Connect to RabbitMQ (global)
+        await rabbitService.connect();
 
-        // 2️⃣ Start consumer for booking messages
-        await startConsumer("booking_exchange");
+        // 2️⃣ Start consumers for each job type
+        await rabbitService.consume("booking_exchange"); // will handle create
+        await rabbitService.consume("cancel_exchange");  // will handle cancel
+        await rabbitService.consume("track_exchange");   // will handle track
+        await rabbitService.consume("status_exchange");  // will handle status
 
-        // 3️⃣ Start consumer for cancel messages
-        await startCancelConsumer("cancel_exchange");
-
-        await startTrackConsumer("track_exchange");
-
-        await startStatusConsumer("status_exchange")
-
-        // 4️⃣ Start Express server
+        // 3️⃣ Start Express server
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
         });
